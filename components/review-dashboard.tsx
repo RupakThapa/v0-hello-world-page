@@ -3,13 +3,23 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Star, TrendingUp, MessageSquare, Clock } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Star, TrendingUp, MessageSquare, Clock, LogOut } from "lucide-react"
 import { SettingsPage } from "./settings-page"
 import { ReviewsPage } from "./reviews-page"
 import { LocationsPage } from "./locations-page"
 
 export function ReviewDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
 
   const stats = [
     {
@@ -71,9 +81,15 @@ export function ReviewDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Monitor your Google Reviews and auto-reply performance</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Monitor your Google Reviews and auto-reply performance</p>
+        </div>
+        <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2 bg-transparent">
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

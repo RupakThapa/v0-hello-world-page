@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff, Mail, Lock, Chrome } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function LoginForm() {
@@ -24,20 +23,19 @@ export function LoginForm() {
     setError("")
 
     try {
-      // Simulate login API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Login attempt:", { email, password })
-      // Redirect to dashboard on success
+      if (email === "admin" && password === "pass12345#") {
+        // Set authentication cookie
+        document.cookie = "access_token=authenticated; path=/; max-age=86400"
+        // Redirect to dashboard
+        window.location.href = "/"
+      } else {
+        setError("Invalid email or password")
+      }
     } catch (err) {
-      setError("Invalid email or password")
+      setError("Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleGoogleLogin = () => {
-    // Redirect to Google OAuth
-    window.location.href = "/api/auth/google"
   }
 
   return (
@@ -48,24 +46,6 @@ export function LoginForm() {
           <CardDescription>Sign in to manage your Google Reviews</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button
-            onClick={handleGoogleLogin}
-            variant="outline"
-            className="w-full flex items-center gap-2 bg-transparent"
-          >
-            <Chrome className="h-4 w-4" />
-            Continue with Google
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-            </div>
-          </div>
-
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -73,7 +53,7 @@ export function LoginForm() {
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -119,19 +99,14 @@ export function LoginForm() {
             </Button>
           </form>
 
-          <div className="text-center text-sm">
-            <a href="#" className="text-primary hover:underline">
-              Forgot your password?
-            </a>
-          </div>
-
-          <Separator />
-
-          <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <a href="#" className="text-primary hover:underline">
-              Sign up
-            </a>
+          <div className="text-center text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+            <p className="font-medium">Demo Credentials:</p>
+            <p>
+              Email: <code className="bg-background px-1 rounded">admin</code>
+            </p>
+            <p>
+              Password: <code className="bg-background px-1 rounded">pass12345#</code>
+            </p>
           </div>
         </CardContent>
       </Card>
