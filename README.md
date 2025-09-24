@@ -30,27 +30,27 @@ An AI-powered Google Review Auto-Reply system built with Next.js 14, featuring a
 ### Installation
 
 1. Clone the repository:
-```bash
+\`\`\`bash
 git clone <repository-url>
 cd v0-google-review-auto-replies
-```
+\`\`\`
 
 2. Install dependencies:
-```bash
+\`\`\`bash
 pnpm install
-```
+\`\`\`
 
 3. Set up environment variables:
-```bash
+\`\`\`bash
 cp .env.example .env.local
-```
+\`\`\`
 
 4. Configure your environment variables in `.env.local` (see Environment Setup section below)
 
 5. Run the development server:
-```bash
+\`\`\`bash
 pnpm dev
-```
+\`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
@@ -60,13 +60,13 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Copy `.env.example` to `.env.local` and configure the following variables:
 
-```bash
+\`\`\`bash
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here
-```
+\`\`\`
 
 ### Google OAuth Setup
 
@@ -94,7 +94,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here
 
 ## Project Structure
 
-```
+\`\`\`
 ├── app/                    # Next.js 14 App Router
 │   ├── api/               # API routes
 │   │   ├── auth/         # Authentication endpoints
@@ -106,7 +106,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here
 │   └── auth/             # Authentication components
 ├── lib/                  # Utility functions and configurations
 └── public/              # Static assets
-```
+\`\`\`
 
 ## Authentication
 
