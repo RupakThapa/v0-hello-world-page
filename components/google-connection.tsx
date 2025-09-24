@@ -35,6 +35,7 @@ export const GoogleConnection = () => {
     setError(null)
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
 
     if (!clientId) {
       console.error("[v0] Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID")
@@ -43,7 +44,14 @@ export const GoogleConnection = () => {
       return
     }
 
-    const redirectUri = `${window.location.origin}/api/google/auth`
+    if (!appUrl) {
+      console.error("[v0] Missing NEXT_PUBLIC_APP_URL")
+      setError("Google OAuth is not configured. Missing app URL.")
+      setIsConnecting(false)
+      return
+    }
+
+    const redirectUri = `${appUrl}/api/google/auth`
     const scope = "openid email profile https://www.googleapis.com/auth/business.manage"
     const state = Math.random().toString(36).substring(2, 15)
 
