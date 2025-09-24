@@ -2,44 +2,38 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   console.log("[v0] Google OAuth callback received")
-  console.log("[v0] Request URL:", request.url)
 
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get("code")
-  const state = searchParams.get("state")
-  const error = searchParams.get("error")
-
-  console.log("[v0] OAuth params:", { code: !!code, state, error })
-
-  // Handle OAuth errors from Google
-  if (error) {
-    console.error("[v0] OAuth error from Google:", error)
-    const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin)
-    redirectUrl.searchParams.set("google_error", error)
-    return NextResponse.redirect(redirectUrl)
-  }
-
+  // Check environment variables first
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.NEXT_PUBLIC_APP_URL) {
-    console.error("[v0] Missing required environment variables for Google OAuth")
-    console.error("[v0] Available env vars:", {
-      GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
-      NEXT_PUBLIC_APP_URL: !!process.env.NEXT_PUBLIC_APP_URL,
-    })
     return NextResponse.json(
-      { error: "Google OAuth is not configured. Please check environment variables." },
+      {
+        error: "Missing environment variables",
+        debug: {
+          GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+          GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
+          NEXT_PUBLIC_APP_URL: !!process.env.NEXT_PUBLIC_APP_URL,
+        },
+      },
       { status: 500 },
     )
   }
 
+  const { searchParams } = new URL(request.url)
+  const code = searchParams.get("code")
+  const error = searchParams.get("error")
+
+  // Handle OAuth errors from Google
+  if (error) {
+    const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL)
+    redirectUrl.searchParams.set("google_error", error)
+    return NextResponse.redirect(redirectUrl)
+  }
+
   if (!code) {
-    console.error("[v0] Authorization code not provided")
     return NextResponse.json({ error: "Authorization code not provided" }, { status: 400 })
   }
 
   try {
-    console.log("[v0] Exchanging code for token...")
-
     // Exchange authorization code for access token
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -56,22 +50,17 @@ export async function GET(request: NextRequest) {
     })
 
     const tokenData = await tokenResponse.json()
-    console.log("[v0] Token response status:", tokenResponse.status)
 
     if (!tokenResponse.ok) {
-      console.error("[v0] Token exchange failed:", tokenData)
       throw new Error(tokenData.error_description || "Failed to exchange code for token")
     }
 
-    console.log("[v0] Token exchange successful, redirecting to dashboard")
-
     const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL)
     redirectUrl.searchParams.set("google_connected", "true")
-
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
-    console.error("[v0] Google OAuth error:", error)
-    const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin)
+    console.error("Google OAuth error:", error)
+    const redirectUrl = new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL)
     redirectUrl.searchParams.set("google_error", "connection_failed")
     return NextResponse.redirect(redirectUrl)
   }
