@@ -11,8 +11,22 @@ export const GoogleConnection = () => {
   const handleConnect = () => {
     setIsConnecting(true)
 
-    // Redirect to server-side OAuth handler for consistent configuration
-    window.location.href = "/api/auth/google"
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    const redirectUri = `${window.location.origin}/api/google/auth`
+    const scope = "openid email profile https://www.googleapis.com/auth/business.manage"
+    const state = Math.random().toString(36).substring(2, 15)
+
+    const googleAuthUrl = new URL("https://accounts.google.com/oauth/authorize")
+    googleAuthUrl.searchParams.set("client_id", clientId!)
+    googleAuthUrl.searchParams.set("redirect_uri", redirectUri)
+    googleAuthUrl.searchParams.set("response_type", "code")
+    googleAuthUrl.searchParams.set("scope", scope)
+    googleAuthUrl.searchParams.set("access_type", "offline")
+    googleAuthUrl.searchParams.set("prompt", "consent")
+    googleAuthUrl.searchParams.set("state", state)
+
+    // Redirect to Google OAuth
+    window.location.href = googleAuthUrl.toString()
   }
 
   const handleDisconnect = () => {
