@@ -1,29 +1,64 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ExternalLink, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export const GoogleConnection = () => {
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [configError, setConfigError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    if (!clientId) {
+      setConfigError("NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not set")
+    }
+
+    // Check for auth errors in URL params
+    const urlParams = new URLSearchParams(window.location.search)
+    const googleError = urlParams.get("google_error")
+    const googleConnected = urlParams.get("google_connected")
+
+    if (googleError === "connection_failed") {
+      setError("Failed to connect to Google. Please check your configuration and try again.")
+    } else if (googleConnected === "true") {
+      setIsConnected(true)
+    }
+  }, [])
 
   const handleConnect = () => {
+    console.log("[v0] Starting Google OAuth connection")
     setIsConnecting(true)
+    setError(null)
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+    if (!clientId) {
+      console.error("[v0] Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID")
+      setError("Google OAuth is not configured. Missing client ID.")
+      setIsConnecting(false)
+      return
+    }
+
     const redirectUri = `${window.location.origin}/api/google/auth`
     const scope = "openid email profile https://www.googleapis.com/auth/business.manage"
     const state = Math.random().toString(36).substring(2, 15)
 
+    console.log("[v0] OAuth config:", { clientId, redirectUri, scope })
+
     const googleAuthUrl = new URL("https://accounts.google.com/oauth/authorize")
-    googleAuthUrl.searchParams.set("client_id", clientId!)
+    googleAuthUrl.searchParams.set("client_id", clientId)
     googleAuthUrl.searchParams.set("redirect_uri", redirectUri)
     googleAuthUrl.searchParams.set("response_type", "code")
     googleAuthUrl.searchParams.set("scope", scope)
     googleAuthUrl.searchParams.set("access_type", "offline")
     googleAuthUrl.searchParams.set("prompt", "consent")
     googleAuthUrl.searchParams.set("state", state)
+
+    console.log("[v0] Redirecting to:", googleAuthUrl.toString())
 
     // Redirect to Google OAuth
     window.location.href = googleAuthUrl.toString()
@@ -32,6 +67,7 @@ export const GoogleConnection = () => {
   const handleDisconnect = () => {
     // In a real app, this would revoke the tokens and clear stored data
     setIsConnected(false)
+    setError(null)
   }
 
   return (
@@ -69,6 +105,28 @@ export const GoogleConnection = () => {
       </div>
 
       <div className="space-y-4">
+        {configError && (
+          <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700 dark:text-red-300">
+              <strong>Configuration Error:</strong> {configError}
+              <br />
+              <span className="text-sm">
+                Please add the required environment variables to your Vercel project settings.
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700 dark:text-red-300">
+              <strong>Connection Error:</strong> {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {!isConnected ? (
           <>
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
@@ -90,10 +148,35 @@ export const GoogleConnection = () => {
               </ul>
             </div>
 
+            {configError && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Setup Required:</h4>
+                <ol className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-decimal list-inside">
+                  <li>Go to your Vercel project settings</li>
+                  <li>Add the following environment variables:</li>
+                  <ul className="ml-4 mt-1 space-y-1 list-disc list-inside">
+                    <li>
+                      <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">GOOGLE_CLIENT_ID</code>
+                    </li>
+                    <li>
+                      <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">GOOGLE_CLIENT_SECRET</code>
+                    </li>
+                    <li>
+                      <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">NEXT_PUBLIC_APP_URL</code>
+                    </li>
+                    <li>
+                      <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code>
+                    </li>
+                  </ul>
+                  <li>Redeploy your application</li>
+                </ol>
+              </div>
+            )}
+
             <Button
               onClick={handleConnect}
-              disabled={isConnecting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isConnecting || !!configError}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
             >
               {isConnecting ? (
                 <>
