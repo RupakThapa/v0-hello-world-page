@@ -11,22 +11,8 @@ export const GoogleConnection = () => {
   const handleConnect = () => {
     setIsConnecting(true)
 
-    // Generate state parameter for security
-    const state = Math.random().toString(36).substring(2, 15)
-
-    // Store state in sessionStorage for verification
-    sessionStorage.setItem("google_oauth_state", state)
-
-    // Redirect to Google OAuth
-    const googleAuthUrl = new URL("https://accounts.google.com/oauth/authorize")
-    googleAuthUrl.searchParams.set("client_id", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "")
-    googleAuthUrl.searchParams.set("redirect_uri", `${window.location.origin}/api/google/auth`)
-    googleAuthUrl.searchParams.set("response_type", "code")
-    googleAuthUrl.searchParams.set("scope", "https://www.googleapis.com/auth/business.manage")
-    googleAuthUrl.searchParams.set("access_type", "offline")
-    googleAuthUrl.searchParams.set("state", state)
-
-    window.location.href = googleAuthUrl.toString()
+    // Redirect to server-side OAuth handler for consistent configuration
+    window.location.href = "/api/auth/google"
   }
 
   const handleDisconnect = () => {
